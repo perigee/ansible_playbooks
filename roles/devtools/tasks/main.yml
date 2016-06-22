@@ -54,3 +54,9 @@
 #- name: config file
 #  include: config.yml
 #  tags: config
+
+
+- name: install deb pkg
+  include: deb.yml
+  with_items:
+    - {{ name: "vagrant", url: "https://releases.hashicorp.com/vagrant/1.8.4/vagrant_1.8.4_x86_64.deb"}}
