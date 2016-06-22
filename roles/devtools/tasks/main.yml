@@ -1,7 +1,7 @@
 ---
 
 - name: basic dev tools
-  apt: name={{ item }} state=present
+  apt: name={{ item }} state=present update_cache=yes
   with_items:
     - emacs24-nox
     - build-essential
@@ -11,14 +11,15 @@
     - libffi-dev
     - libcurl4-openssl-dev
     - git
+    - python-dev
 
 ## ===== Docker
 - name: install docker
-  shell: curl -fsSL https://get.docker.com/ | sh
+  shell: "curl -fsSL https://get.docker.com/ | sh"
   tags: docker_build
 
-- name: add to ubuntu
-  shell: usermod -aG docker ubuntu
+- name: add to user
+  shell: usermod -aG docker {{ ansible_ssh_user }}
   tags: docker_build
 
 - name: install pip
@@ -30,5 +31,26 @@
     - ansible
     - boto
     - docker-compose
-    - jupyter
     - docker-py
+
+- name: create folder
+  sudo: no
+  file: path="{{ item }}" state=directory
+  with_items:
+    - "~/.ssh"
+    - "~/.aws"
+  tags: key_copy
+
+- name: cp keys
+  sudo: no
+  copy: src="{{ item.src }}" dest="{{ item.dest }}" mode=0600
+  with_items:
+    - {src: "~/.ssh/id_rsa", dest: "~/.ssh/"}
+    - {src: "~/.ssh/id_rsa.pub", dest: "~/.ssh/"}
+    - {src: "~/.aws/credentials", dest: "~/.aws"}
+    - {src: "~/.aws/config", dest: "~/.aws"}
+  tags: key_copy
+
+#- name: config file
+#  include: config.yml
+#  tags: config
